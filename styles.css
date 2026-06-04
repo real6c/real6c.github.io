@@ -63,7 +63,7 @@ button,
     left: 0;
     width: 100vw;
     height: 100vh;
-    z-index: 6;
+    z-index: 4;
     pointer-events: none;
 }
 
@@ -157,15 +157,26 @@ body::after {
 }
 
 .pane-left {
-    flex: 1;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 50vw;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
     transition: opacity 0.5s ease;
 }
 
 .pane-right {
-    flex: 1;
+    position: absolute;
+    top: 0;
+    left: 50vw;
+    width: 50vw;
+    height: 100vh;
     display: flex;
     flex-direction: column;
     transition: all 0.8s cubic-bezier(0.25, 1, 0.5, 1);
+    transform-origin: top left;
 }
 
 
@@ -318,29 +329,14 @@ body.project-view .ascii-title {
 }
 
 body.project-view .pane-right {
-    position: absolute;
     top: 20px;
     left: 20px;
     transform: scale(0.65);
-    transform-origin: top left;
-    width: 50vw;
     background: none;
     z-index: 5;
 }
 
-body.project-view .pane-right::before {
-    content: "";
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    width: 10px;
-    height: 10px;
-    background: rgba(5, 10, 25, 0.85);
-    box-shadow: 0 0 300px 300px rgba(5, 10, 25, 0.85);
-    border-radius: 50%;
-    z-index: -1;
-    pointer-events: none;
-}
+
 
 body.project-view .menu-prompt {
     font-size: 1.3125rem;

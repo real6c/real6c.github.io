@@ -110,7 +110,7 @@ let nextLogDelay = 100;
 let showBgStats = true;
 let statScaleTarget = 1.0;
 let statScale = 1.0;
-let currentStatX = null;
+let currentStatOffsetX = null;
 
 // --- System Stats Simulation ---
 const sysStats = {
@@ -307,30 +307,60 @@ function draw() {
     ctx.shadowBlur = 0;
     ctx.fillRect(0, 0, width, bgHeight);
 
+    // --- Draw Transparent Feathered Dark Shadow for Project View ---
+    if (document.body.classList.contains('project-view')) {
+        let paneRightEl = document.querySelector('.pane-right');
+        if (paneRightEl) {
+            let pRect = paneRightEl.getBoundingClientRect();
+            let cx = pRect.left + pRect.width / 2;
+            let cy = pRect.top + pRect.height / 2;
+            
+            // Replicate the CSS shadow: 300px spread + 300px blur = ~600px radius before scale
+            let radius = 600 * statScale; 
+            
+            if (radius > 0) {
+                let rGrad = ctx.createRadialGradient(cx, cy, 0, cx, cy, radius);
+                // Solid center, feathering out over the outer half
+                rGrad.addColorStop(0, 'rgba(5, 10, 25, 0.85)');
+                rGrad.addColorStop(0.5, 'rgba(5, 10, 25, 0.85)');
+                rGrad.addColorStop(1, 'rgba(5, 10, 25, 0)');
+                
+                ctx.fillStyle = rGrad;
+                ctx.fillRect(cx - radius, cy - radius, radius * 2, radius * 2);
+            }
+        }
+    }
+
     statsCtx.clearRect(0, 0, width, height);
 
     // --- Draw BG Stats (right side, underneath/behind globe) ---
     if (showBgStats) {
         // Smoothly interpolate scale to match CSS transition
-        statScale += (statScaleTarget - statScale) * 0.05;
+        statScale += (statScaleTarget - statScale) * 0.12;
 
         let globeEl = document.getElementById('globe-ascii');
         if (globeEl) {
             let rect = globeEl.getBoundingClientRect();
             
             // X Calculations
-            let homeX = rect.right + ((width - rect.right) / 2) - (147 * statScale);
-            let projectX = rect.right + (100 * statScale);
-            let targetX = document.body.classList.contains('project-view') ? projectX : homeX;
+            let targetOffsetX = document.body.classList.contains('project-view') 
+                ? (100 * statScale) 
+                : (((width - rect.right) / 2) - (147 * statScale));
             
-            if (currentStatX === null) currentStatX = targetX;
-            currentStatX += (targetX - currentStatX) * 0.08;
+            if (currentStatOffsetX === null) {
+                currentStatOffsetX = targetOffsetX;
+            }
+            
+            // Smoothly interpolate the offset relative to the globe
+            currentStatOffsetX += (targetOffsetX - currentStatOffsetX) * 0.12;
+            
+            let finalStatX = rect.right + currentStatOffsetX;
 
             // Y Calculations
             let globeCenterY = rect.top + (rect.height / 2);
             let statYBase = globeCenterY - (88 * statScale); 
 
-            drawSystemStats(statsCtx, currentStatX, statYBase, statScale);
+            drawSystemStats(statsCtx, finalStatX, statYBase, statScale);
         }
     }
 
@@ -724,6 +754,268 @@ Experienced leader in team coordination (robotics) and organizational governance
                 <a href="https://github.com/real6c" target="_blank" class="project-link" style="font-size: 1.1rem;">[🔗 GitHub Portfolio]</a><br><br>
                 <a href="https://makerworld.com/en/@lr_f3d" target="_blank" class="project-link" style="font-size: 1.1rem;">[🔗 MakerWorld Models]</a>
             </p>
+        </div>`,
+    'rpi_usb_cam_proj': `<h2>> raspberryPiUSBCamera.sh</h2><br>
+        <div class="project-desc">
+            <p><strong>Description:</strong> Developed to transform a Raspberry Pi Zero and Pi Camera Module 3 into a plug-and-play, high-quality USB webcam.</p>
+            <p>Through this project, I gained hands-on experience with Linux kernel modules (configfs, libcomposite), the UVC gadget driver architecture, and low-level systems programming. I successfully optimized the camera pipeline utilizing various encoding formats (such as YUV420p, MJPEG, NV12, and H.264) to achieve crystal-clear 1080p 60fps video quality.</p>
+            <br>
+            <p><a href="https://gist.github.com/real6c/391447b194af58e42ebbf5e1d2e018d9" target="_blank" class="project-link">[🔗 View Script Gist]</a></p>
+        </div>
+        <br>
+        <h3 style="color: #556688;">> install_rpi_uvc.sh</h3>
+        <pre class="ascii-flowchart" style="color: #aaccff; border-left: 2px solid #20dc80; white-space: pre-wrap; font-size: 0.85rem;">
+#!/bin/bash
+
+RED='\\033[0;31m'
+GREEN='\\033[0;32m'
+PURPLE='\\033[0;35m'
+NC='\\033[0m'
+TARGET_USER=\$(logname)
+
+# Check if running in bash
+if [ -z "\$BASH_VERSION" ]; then
+  echo -e "\${RED}Please run this script with bash.\${NC}" >&2
+  exit 1
+fi
+
+# Check if running with root
+if [[ "\$EUID" -ne 0 ]]; then
+  echo -e "\${RED}Please run this script with sudo or as root.\${NC}" >&2
+  exit 1
+fi
+
+echo -e "\${GREEN}You are root. Continuing...\${NC}"
+
+# Update apt packages
+echo -e "\${PURPLE}Updating apt packages...\${NC}"
+sudo apt update
+sudo apt full-upgrade -y
+
+# Configure raspberry pi for OTG
+echo -e "\${PURPLE}Configuring raspberry pi for OTG...\${NC}"
+echo "dtoverlay=dwc2,dr_mode=otg" | sudo tee -a /boot/firmware/config.txt
+
+# Install prerequisite packages
+echo -e "\${PURPLE}Installing prerequisite packages...\${NC}"
+sudo apt install git meson libcamera-dev libjpeg-dev -y
+
+# Clone UVC repo and build/install
+echo -e "\${PURPLE}Setting up UVC...\${NC}"
+git clone https://gitlab.freedesktop.org/camera/uvc-gadget.git
+cd uvc-gadget
+make uvc-gadget
+cd build
+sudo meson install
+sudo ldconfig
+
+# Create startup script
+echo -e "\${PURPLE}Creating startup script...\${NC}"
+cat << 'ENDOFFILE' > /home/\$TARGET_USER/.rpi-uvc-gadget.sh
+#!/bin/bash
+# Variables we need to make things easier later on.
+CONFIGFS="/sys/kernel/config"
+GADGET="\$CONFIGFS/usb_gadget"
+VID="0x0525"
+PID="0xa4a2"
+SERIAL="0123456789"
+MANUF=\$(hostname)
+PRODUCT="UVC Gadget"
+BOARD=\$(strings /proc/device-tree/model)
+UDC=\`ls /sys/class/udc\` # will identify the 'first' UDC
+# Later on, this function is used to tell the usb subsystem that we want
+# to support a particular format, framesize and frameintervals
+create_frame() {
+	# Example usage:
+	# create_frame <function name> <width> <height> <format> <name> <intervals>
+	FUNCTION=\$1
+	WIDTH=\$2
+	HEIGHT=\$3
+	FORMAT=\$4
+	NAME=\$5
+	wdir=functions/\$FUNCTION/streaming/\$FORMAT/\$NAME/\${HEIGHT}p
+	mkdir -p \$wdir
+	echo \$WIDTH > \$wdir/wWidth
+	echo \$HEIGHT > \$wdir/wHeight
+	echo \$(( \$WIDTH * \$HEIGHT * 2 )) > \$wdir/dwMaxVideoFrameBufferSize
+	cat <<EOF > \$wdir/dwFrameInterval
+\$6
+EOF
+}
+# This function sets up the UVC gadget function in configfs and binds us
+# to the UVC gadget driver.
+create_uvc() {
+	CONFIG=\$1
+	FUNCTION=\$2
+	echo "	Creating UVC gadget functionality : \$FUNCTION"
+	mkdir functions/\$FUNCTION
+	create_frame \$FUNCTION 640 480 uncompressed u "333333
+416667
+500000
+666666
+1000000
+1333333
+2000000
+"
+	create_frame \$FUNCTION 1280 720 uncompressed u "1000000
+1333333
+2000000
+"
+	create_frame \$FUNCTION 1920 1080 uncompressed u "2000000"
+	create_frame \$FUNCTION 640 480 mjpeg m "333333
+416667
+500000
+666666
+1000000
+1333333
+2000000
+"
+	create_frame \$FUNCTION 1280 720 mjpeg m "333333
+416667
+500000
+666666
+1000000
+1333333
+2000000
+"
+	create_frame \$FUNCTION 1920 1080 mjpeg m "333333
+416667
+500000
+666666
+1000000
+1333333
+2000000
+"
+	mkdir functions/\$FUNCTION/streaming/header/h
+	cd functions/\$FUNCTION/streaming/header/h
+	ln -s ../../uncompressed/u
+	ln -s ../../mjpeg/m
+	cd ../../class/fs
+	ln -s ../../header/h
+	cd ../../class/hs
+	ln -s ../../header/h
+	cd ../../class/ss
+	ln -s ../../header/h
+	cd ../../../control
+	mkdir header/h
+	ln -s header/h class/fs
+	ln -s header/h class/ss
+	cd ../../../
+	# This configures the USB endpoint to allow 3x 1024 byte packets per
+	# microframe, which gives us the maximum speed for USB 2.0. Other
+	# valid values are 1024 and 2048, but these will result in a lower
+	# supportable framerate.
+	echo 2048 > functions/\$FUNCTION/streaming_maxpacket
+	ln -s functions/\$FUNCTION configs/c.1
+}
+# This loads the module responsible for allowing USB Gadgets to be
+# configured through configfs, without which we can't connect to the
+# UVC gadget kernel driver
+echo "Loading composite module"
+modprobe libcomposite
+# This section configures the gadget through configfs. We need to
+# create a bunch of files and directories that describe the USB
+# device we want to pretend to be.
+if
+[ ! -d \$GADGET/g1 ]; then
+	echo "Detecting platform:"
+	echo "  board : \$BOARD"
+	echo "  udc   : \$UDC"
+	echo "Creating the USB gadget"
+	echo "Creating gadget directory g1"
+	mkdir -p \$GADGET/g1
+	cd \$GADGET/g1
+	if
+[ \$? -ne 0 ]; then
+		echo "Error creating usb gadget in configfs"
+		exit 1;
+	else
+		echo "OK"
+	fi
+	echo "Setting Vendor and Product ID's"
+	echo \$VID > idVendor
+	echo \$PID > idProduct
+	echo "OK"
+	echo "Setting English strings"
+	mkdir -p strings/0x409
+	echo \$SERIAL > strings/0x409/serialnumber
+	echo \$MANUF > strings/0x409/manufacturer
+	echo \$PRODUCT > strings/0x409/product
+	echo "OK"
+	echo "Creating Config"
+	mkdir configs/c.1
+	mkdir configs/c.1/strings/0x409
+	echo "Creating functions..."
+	create_uvc configs/c.1 uvc.0
+	echo "OK"
+	echo "Binding USB Device Controller"
+	echo \$UDC > UDC
+	echo "OK"
+fi
+# Run uvc-gadget. The -c flag sets libcamera as a source, arg 0 selects
+# the first available camera on the system. All cameras will be listed,
+# you can re-run with -c n to select camera n or -c ID to select via
+# the camera ID.
+uvc-gadget -c 0 uvc.0
+ENDOFFILE
+
+# Make script executable
+echo -e "\${PURPLE}Configuring executable script...\${NC}"
+sudo chmod +x /home/\$TARGET_USER/.rpi-uvc-gadget.sh
+
+# Create startup service
+echo -e "\${PURPLE}Creating startup service...\${NC}"
+cat << EOF > /etc/systemd/system/uvc-gadget.service
+[Unit]
+Description=Start UVC Gadget on Boot
+After=multi-user.target
+[Service]
+Type=simple
+ExecStart=/home/\$TARGET_USER/.rpi-uvc-gadget.sh
+Restart=on-failure
+[Install]
+WantedBy=multi-user.target
+EOF
+
+# Enable service and reboot
+echo -e "\${PURPLE}Starting service and rebooting...\${NC}"
+sudo systemctl enable uvc-gadget.service
+sudo systemctl start uvc-gadget.service
+
+echo -e "\${PURPLE}Rebooting in 5 seconds...\${NC}"
+sleep 5
+
+sudo reboot
+        </pre>`,
+    'csi_wifi_sense_proj': `<h2>> CSI_WiFi_Sense.py</h2><br>
+        <div class="project-desc">
+            <p><strong>Description:</strong> A proof-of-concept AI system that predicts the physical position of a human in a room using only Wi-Fi waves. Because the human body is mostly water, it noticeably absorbs and reflects Radio Frequency (RF) signals. By analyzing these interference patterns in Channel State Information (CSI) data, the neural network learns to map RF disruptions directly to physical room coordinates.</p>
+            <p><strong>Methodology:</strong> I captured synchronized CSI data (via an ESP32) and webcam footage. A computer vision segmentation model extracted the human's "ground truth" position from the video. The network was then trained to predict this ground truth using strictly the raw, invisible CSI data.</p>
+            <p><strong>Hardware Setup:</strong> A Wi-Fi router, an ESP32 receiver, and a packet transmitting device arranged in a static triangle configuration.</p>
+            <br>
+            <p><a href="https://github.com/real6c/WiFi-Sense" target="_blank" class="project-link">[🔗 View on GitHub: real6c/WiFi-Sense]</a></p>
+        </div>
+        <br>
+        <h3 style="color: #556688;">> execution_pipeline.log</h3>
+        <pre class="ascii-flowchart">
+[ INIT ] -> Flash ESP32 and place Router, ESP32, & Tx Device in static triangle
+              |
+             [v]
+[ SYNC ] -> Run collect_data.py to gather synchronized CSI & webcam feeds
+              |
+             [v]
+[ CV   ] -> Run segmentation_infer.py to generate ground truth positioning
+              |
+             [v]
+[ TRAIN] -> Train neural network mapping raw CSI data -> CV segmentation
+              |
+             [v]
+[ INFR ] -> Real-time live inference of human position using only Wi-Fi waves
+        </pre>
+        <br>
+        <h3 style="color: #556688;">> live_inference_demo.gif</h3>
+        <div class="project-images">
+            <img src="assets/csi_wifi_sense_proj/csi_sense_demo.gif" alt="CSI WiFi Sense Live Inference Demo">
         </div>`
 };
 
@@ -763,6 +1055,7 @@ function handleRouteChange() {
         }, 500);
         
         statScaleTarget = 1.0;
+        currentStatOffsetX = -200 * statScale; // Snap behind globe to slide out
     } else {
         // Navigate to project
         if (document.body.classList.contains('project-view')) {
@@ -776,6 +1069,7 @@ function handleRouteChange() {
             // Animating from home to project
             document.body.classList.add('project-view');
             statScaleTarget = 0.65;
+            currentStatOffsetX = -200 * statScale; // Snap behind globe to slide out
             contentContainer.innerHTML = routeContentMap[hash] || '<h2>Not Found</h2><p>Project not found.</p>';
             projectPane.style.display = 'flex';
             // Slight delay to allow display: flex to apply before transitioning opacity
@@ -793,8 +1087,8 @@ function drawSystemStats(ctx, x, y, scale = 1.0) {
     let fontSize = Math.round(10 * scale);
     ctx.font = `${fontSize}px "Fira Code", monospace`;
     ctx.fillStyle = '#20dc80';
-    ctx.shadowBlur = 0;
-    ctx.shadowColor = 'transparent';
+    ctx.shadowBlur = 8;
+    ctx.shadowColor = 'rgba(32, 220, 128, 0.6)';
 
     const lineHeight = 14 * scale;
     let currY = y;
