@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lukas Real | Portfolio</title>
+    <link rel="stylesheet" href="styles.css">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;700&family=Inter:wght@400;600;800&display=swap"
+        rel="stylesheet">
+</head>
+
+<body>
+    <div id="custom-cursor">
+        <svg width="42" height="42" viewBox="0 0 42 42" xmlns="http://www.w3.org/2000/svg">
+            <g id="cursor-lines" stroke="#20dc80" stroke-width="2.5" stroke-linecap="round" opacity="0" style="transition: opacity 0.15s ease, transform 0.15s ease; transform-origin: 10px 10px; transform: scale(0.5);">
+                <line x1="3" y1="3" x2="6.5" y2="6.5" />
+                <line x1="10" y1="1" x2="10" y2="6" />
+                <line x1="1" y1="10" x2="6" y2="10" />
+            </g>
+            <path d="M10 10 L32 18 L22 22 L18 32 Z" fill="#20dc80" stroke="#20dc80" stroke-width="1.5" stroke-linejoin="round" />
+        </svg>
+    </div>
+    <!-- Fullscreen CRT Scanlines Overlay -->
+    <div class="scanlines-bg"></div>
+    <div class="scanlines-ui"></div>
+    <!-- Fullscreen Background Canvas -->
+    <canvas id="bg-canvas"></canvas>
+    <canvas id="stats-canvas"></canvas>
+
+    <div class="tmux-wrapper">
+        <pre class="ascii-title">
+  _          _               ____            _ 
+ | |   _   _| | ____ _ ___  |  _ \ ___  __ _| |
+ | |  | | | | |/ / _` / __| | |_) / _ \/ _` | |
+ | |__| |_| |   < (_| \__ \ |  _ <  __/ (_| | |
+ |_____\__,_|_|\_\__,_|___/ |_| \_\___|\__,_|_|
+        </pre>
+        <!-- Left Pane -->
+        <div class="pane pane-left" id="pane-left"></div>
+
+        <!-- Right Pane: Menu -->
+        <div class="pane pane-right">
+
+            <div class="pane-globe">
+                <div class="globe-col">
+                    <pre id="globe-ascii"></pre>
+                    <div class="globe-location">
+                        <div><span class="loc-icon">[◉] </span><span id="loc-city">locating...</span> <span
+                                class="loc-time" id="loc-time">--:--:--</span></div>
+                        <div class="loc-date" id="loc-date"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="pane-menu">
+                <div class="menu-prompt">root@portfolio:~# ls -a</div>
+                <div class="menu-help" id="menu-help">[Select a file to open...]</div>
+                <ul class="menu-list">
+                    <li class="menu-item" data-route="web_scraped_dataset_proj">&gt; webScrapedDataset.py</li>
+                    <li class="menu-item" data-route="deepstream_yolo_classification_proj">&gt; deepstreamYoloClassification.cpp</li>
+                    <li class="menu-item" data-route="market_view_proj">&gt; marketView.swift</li>
+                    <li class="menu-item" data-route="3d_modeling_proj">&gt; 3D_Modeling.stl</li>
+                    <li class="menu-item" data-route="experience">&gt; experience.csv</li>
+                    <li class="menu-item" data-route="skills">&gt; skills.txt</li>
+                    <li class="menu-item" data-route="contact">&gt; contact.vcf</li>
+                    <li class="menu-item" data-route="home">&gt; returnToHome.sh</li>
+                </ul>
+                <div class="menu-prompt" id="menu-prompt-bottom" style="margin-top: 6px;">root@portfolio:~#<span class="cursor-blink">█</span></div>
+            </div>
+
+        </div>
+
+        <!-- Project Content Pane (hidden by default) -->
+        <div class="pane-project-content" id="pane-project-content" style="display: none; opacity: 0;">
+            <div id="project-content-container"></div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="script.js"></script>
+</body>
+
+</html>
