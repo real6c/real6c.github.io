@@ -478,3 +478,228 @@ body.project-view .pane-project-content {
     line-height: 1.5;
     border-bottom: 1px dashed rgba(85, 102, 136, 0.3);
 }
+
+/* --- Mobile-Only Elements (hidden on desktop) --- */
+.mobile-title {
+    display: none;
+}
+
+.mobile-back-btn {
+    display: none;
+}
+
+/* ============================================= */
+/* --- Mobile Responsive Layout (≤768px) ---     */
+/* ============================================= */
+@media (max-width: 768px) {
+
+    /* --- Base --- */
+    body,
+    html {
+        cursor: auto;
+        overflow-y: auto;
+        height: auto;
+    }
+
+    a,
+    button,
+    .menu-item,
+    .project-link {
+        cursor: auto !important;
+    }
+
+    #custom-cursor {
+        display: none !important;
+    }
+
+    #stats-canvas {
+        display: none;
+    }
+
+    /* Reduce scanline intensity on mobile for readability */
+    .scanlines-bg {
+        opacity: 0.4;
+    }
+
+    .scanlines-ui {
+        opacity: 0.08;
+    }
+
+    /* --- Layout Restructure --- */
+    .tmux-wrapper {
+        flex-direction: column;
+        height: auto;
+        min-height: 100vh;
+        background: radial-gradient(
+            ellipse at center,
+            rgba(5, 10, 25, 0.75) 0%,
+            rgba(5, 10, 25, 0.5) 50%,
+            rgba(5, 10, 25, 0) 100%
+        );
+    }
+
+    .ascii-title {
+        display: none;
+    }
+
+    .mobile-title {
+        display: block;
+        position: relative;
+        top: auto;
+        left: auto;
+        font-family: 'Fira Code', monospace;
+        font-size: 1.4rem;
+        font-style: italic;
+        color: #20dc80;
+        text-shadow: 0 0 8px rgba(32, 220, 128, 0.4);
+        z-index: 101;
+        padding: 20px 20px 0 20px;
+        margin: 0;
+    }
+
+    .pane-left {
+        display: none;
+    }
+
+    .pane-right {
+        position: relative !important;
+        top: auto !important;
+        left: auto !important;
+        width: 100% !important;
+        height: auto !important;
+        transform: none !important;
+    }
+
+    /* Globe section */
+    .pane-globe {
+        justify-content: center;
+        padding: 20px 16px 0 16px;
+    }
+
+    #globe-ascii {
+        font-size: 6.5px;
+    }
+
+    .globe-location {
+        font-size: 9px;
+    }
+
+    /* Menu section */
+    .pane-menu {
+        padding: 30px 20px 40px 20px;
+        position: relative;
+    }
+
+    .menu-list {
+        grid-template-columns: 1fr;
+        gap: 4px;
+    }
+
+    /* Hide returnToHome.sh on mobile — back button handles this */
+    .menu-item[data-route="home"] {
+        display: none;
+    }
+
+    .menu-item {
+        font-size: 0.95rem;
+        padding: 10px 8px;
+        min-height: 44px;
+        display: flex;
+        align-items: center;
+    }
+
+    .menu-item:hover {
+        transform: none;
+    }
+
+    .menu-prompt {
+        font-size: 0.95rem;
+    }
+
+    .menu-help {
+        font-size: 0.8rem;
+    }
+
+    .cursor-blink {
+        font-size: 0.95rem;
+    }
+
+    /* --- Project View (Mobile) --- */
+    body.project-view .pane-right {
+        display: none !important;
+    }
+
+    body.project-view .mobile-title {
+        display: none;
+    }
+
+    .pane-project-content {
+        position: relative !important;
+        top: auto !important;
+        left: auto !important;
+        right: auto !important;
+        width: 100% !important;
+        height: auto !important;
+        min-height: 100vh;
+        padding: 0;
+    }
+
+    #project-content-container {
+        padding: 16px;
+        border: none;
+        box-shadow: none;
+        background: rgba(10, 33, 77, 0.4);
+    }
+
+    .mobile-back-btn {
+        display: block;
+        font-family: 'Fira Code', monospace;
+        font-size: 1rem;
+        color: #20dc80;
+        padding: 16px 20px;
+        cursor: auto;
+        text-shadow: 0 0 6px rgba(32, 220, 128, 0.4);
+        -webkit-tap-highlight-color: rgba(32, 220, 128, 0.2);
+    }
+
+    .mobile-back-btn:active {
+        color: #ffffff;
+        text-shadow: 0 0 10px #aaccff;
+    }
+
+    /* --- Project Content Adaptations --- */
+    .project-desc p {
+        max-width: 100%;
+        font-size: 0.88rem;
+    }
+
+    .ascii-flowchart {
+        overflow-x: auto;
+        max-width: 100%;
+        font-size: 0.7rem;
+        padding: 12px;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .project-images img {
+        max-height: 250px;
+    }
+
+    .csv-table {
+        display: block;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    /* Override project-view transitions that don't apply on mobile */
+    body.project-view .ascii-title {
+        display: none;
+    }
+
+    body.project-view .menu-prompt,
+    body.project-view .cursor-blink,
+    body.project-view .menu-help,
+    body.project-view .menu-item {
+        font-size: inherit;
+    }
+}

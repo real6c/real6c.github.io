@@ -12,6 +12,10 @@ function resize() {
 window.addEventListener('resize', resize);
 resize();
 
+function isMobile() {
+    return window.innerWidth <= 768;
+}
+
 
 // --- Live Clock & Geolocation ---
 function updateClock() {
@@ -152,7 +156,14 @@ setInterval(() => {
 }, 100);
 
 let customCursor = document.getElementById('custom-cursor');
+
+// Hide custom cursor on touch/mobile devices
+if ('ontouchstart' in window || isMobile()) {
+    if (customCursor) customCursor.style.display = 'none';
+}
+
 window.addEventListener('mousemove', (e) => {
+    if (isMobile()) return;
     mouse.x = e.clientX;
     mouse.y = e.clientY;
     
@@ -334,7 +345,7 @@ function draw() {
     statsCtx.clearRect(0, 0, width, height);
 
     // --- Draw BG Stats (right side, underneath/behind globe) ---
-    if (showBgStats) {
+    if (showBgStats && !isMobile()) {
         // Smoothly interpolate scale to match CSS transition
         statScale += (statScaleTarget - statScale) * 0.12;
 
@@ -1052,25 +1063,39 @@ function handleRouteChange() {
         projectPane.style.opacity = '0';
         setTimeout(() => {
             projectPane.style.display = 'none';
-        }, 500);
+        }, isMobile() ? 0 : 500);
+
+        // On mobile, ensure pane-right is visible again
+        if (isMobile()) {
+            let paneRight = document.querySelector('.pane-right');
+            if (paneRight) paneRight.style.display = '';
+            window.scrollTo(0, 0);
+        }
         
         statScaleTarget = 1.0;
         currentStatOffsetX = -200 * statScale; // Snap behind globe to slide out
     } else {
         // Navigate to project
-        if (document.body.classList.contains('project-view')) {
-            // Already in project view, just swap content smoothly
+        contentContainer.innerHTML = routeContentMap[hash] || '<h2>Not Found</h2><p>Project not found.</p>';
+
+        if (isMobile()) {
+            // Mobile: instant swap, hide menu, show project full-screen
+            document.body.classList.add('project-view');
+            projectPane.style.display = 'flex';
+            projectPane.style.opacity = '1';
+            window.scrollTo(0, 0);
+        } else if (document.body.classList.contains('project-view')) {
+            // Desktop: Already in project view, just swap content smoothly
             projectPane.style.opacity = '0';
             setTimeout(() => {
                 contentContainer.innerHTML = routeContentMap[hash] || '<h2>Not Found</h2><p>Project not found.</p>';
                 projectPane.style.opacity = '1';
             }, 500);
         } else {
-            // Animating from home to project
+            // Desktop: Animating from home to project
             document.body.classList.add('project-view');
             statScaleTarget = 0.65;
             currentStatOffsetX = -200 * statScale; // Snap behind globe to slide out
-            contentContainer.innerHTML = routeContentMap[hash] || '<h2>Not Found</h2><p>Project not found.</p>';
             projectPane.style.display = 'flex';
             // Slight delay to allow display: flex to apply before transitioning opacity
             setTimeout(() => {
